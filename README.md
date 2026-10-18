@@ -46,4 +46,6 @@ Teste pentru geometrie și desfășurare: `npm test`.
 | `js/preview3d.js` | macheta 3D cu three.js și animația de pliere |
 | `js/app.js` | interfața în 3 pași, mascota 🦊, salvarea cutiei în browser |
 
+Proiecte asemănătoare și ce aduce nou acesta: [`docs/proiecte-similare.md`](docs/proiecte-similare.md).
+
 Datele hărții © contribuitorii [OpenStreetMap](https://www.openstreetmap.org/copyright).
