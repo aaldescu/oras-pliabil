@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Orașul Pliabil</title>
+  <meta name="description" content="Alege clădiri reale de pe hartă, decorează-le și primește foi A4 de decupat, îndoit și lipit.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script type="importmap">
+    { "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    } }
+  </script>
+</head>
+<body>
+  <header class="top">
+    <div class="logo"><span class="logo-icon">🏙️</span><span>Orașul <b>Pliabil</b></span></div>
+    <nav class="steps" role="tablist">
+      <button class="step active" data-step="1" role="tab"><span class="num">1</span><span class="lbl">Alege</span></button>
+      <button class="step" data-step="2" role="tab"><span class="num">2</span><span class="lbl">Decorează</span></button>
+      <button class="step" data-step="3" role="tab"><span class="num">3</span><span class="lbl">Tipărește</span></button>
+    </nav>
+    <button class="basket-btn" id="basketBtn" title="Cutia mea cu clădiri"><span class="basket-icon">🧺</span><span id="basketCount">0</span></button>
+  </header>
+
+  <main>
+    <!-- PASUL 1: harta -->
+    <section class="view active" id="view1">
+      <div id="map"></div>
+      <aside class="panel map-panel">
+        <form id="searchForm" class="search">
+          <input id="searchInput" type="search" placeholder="Caută un oraș sau o stradă…" autocomplete="off">
+          <button type="submit" aria-label="Caută">🔍</button>
+        </form>
+        <ul id="searchResults" class="search-results"></ul>
+        <button class="btn locate" id="locateBtn">📍 Du-mă unde sunt eu</button>
+        <h3>🌆 Orașe</h3>
+        <div class="chips" id="cityChips"></div>
+        <h3>⭐ Clădiri celebre</h3>
+        <div class="chips" id="landmarkChips"></div>
+        <button class="btn invent" id="inventBtn">✏️ Inventează o clădire</button>
+      </aside>
+      <div class="map-status" id="mapStatus">Se pregătește harta…</div>
+      <div class="tray" id="tray">
+        <div class="tray-list" id="trayList"></div>
+        <button class="btn big go" id="toStep2" disabled>Decorează ➜</button>
+      </div>
+    </section>
+
+    <!-- PASUL 2: atelierul -->
+    <section class="view" id="view2">
+      <aside class="panel list-panel">
+        <h3>🧺 Cutia mea</h3>
+        <div id="cardList" class="card-list"></div>
+        <button class="btn ghost" data-goto="1">➕ Mai alege clădiri</button>
+      </aside>
+      <div class="stage">
+        <div class="viewer" id="viewer">
+          <div class="viewer-msg" id="viewerMsg">Alege o clădire din cutie</div>
+        </div>
+        <div class="fold-bar">
+          <button class="btn round" id="playFold" title="Pliază-o!">▶</button>
+          <span class="fold-lbl">📄 plat</span>
+          <input type="range" id="foldRange" min="0" max="100" value="100" aria-label="Pliază clădirea">
+          <span class="fold-lbl">🏠 gata</span>
+        </div>
+        <div class="paper">
+          <div class="paper-head">📄 Așa arată pe hârtie <span id="paperInfo"></span></div>
+          <div class="paper-pages" id="paperPages"></div>
+        </div>
+      </div>
+      <aside class="panel editor" id="editor"></aside>
+    </section>
+
+    <!-- PASUL 3: tipărire -->
+    <section class="view" id="view3">
+      <div class="print-wrap">
+        <div class="panel print-card">
+          <h2>🖨️ Gata de tipărit!</h2>
+          <label class="field">Cine construiește orașul?
+            <input id="kidName" type="text" maxlength="30" placeholder="Numele tău">
+          </label>
+          <div class="field">Cât de mari să fie clădirile?
+            <div class="seg" id="sizeSeg"></div>
+          </div>
+          <label class="toggle"><input type="checkbox" id="optSame"><span></span> Toate la aceeași scară <small>(ca un oraș adevărat)</small></label>
+          <label class="toggle"><input type="checkbox" id="optColor"><span></span> Vreau să le colorez eu <small>(contur alb-negru)</small></label>
+          <label class="toggle"><input type="checkbox" id="optBase"><span></span> Cu bază sub fiecare clădire</label>
+          <label class="toggle"><input type="checkbox" id="optPlan"><span></span> Cu planșa orașului <small>(străzi și locul fiecărei clădiri)</small></label>
+          <p class="summary" id="printSummary"></p>
+          <button class="btn big go" id="makePdf">✨ Fă-mi PDF-ul!</button>
+          <p class="tip">Sfat: tipărește pe hârtie groasă (160–250 g/m²) la „Dimensiune reală / 100%”. Sau lipește foile pe carton de cutie de cereale!</p>
+        </div>
+        <div class="panel pdf-card" id="pdfCard">
+          <div class="pdf-empty" id="pdfEmpty">
+            <div class="big-emoji">✂️📐🧴</div>
+            <p>Aici apare PDF-ul tău.<br>Ai nevoie de: foarfecă, riglă, lipici și un adult de ajutor.</p>
+          </div>
+          <iframe id="pdfFrame" title="PDF" hidden></iframe>
+          <a class="btn big go" id="pdfDownload" hidden download="orasul-meu-pliabil.pdf">⬇️ Descarcă PDF-ul</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="mascot" id="mascot"><div class="bubble" id="bubble"></div><div class="fox">🦊</div></div>
+
+  <dialog id="inventDlg">
+    <form method="dialog" class="invent-form">
+      <h2>✏️ Clădirea mea inventată</h2>
+      <label class="field">Cum se numește?<input id="invName" type="text" maxlength="40" value="Casa mea"></label>
+      <div class="field">Ce formă are?<div class="seg" id="invShape"></div></div>
+      <label class="field">Lungime: <b id="invWv">12</b> m<input id="invW" type="range" min="4" max="60" value="12"></label>
+      <label class="field">Lățime: <b id="invDv">9</b> m<input id="invD" type="range" min="4" max="60" value="9"></label>
+      <label class="field">Etaje: <b id="invLv">2</b><input id="invL" type="range" min="1" max="30" value="2"></label>
+      <div class="dlg-actions">
+        <button class="btn ghost" value="cancel">Renunț</button>
+        <button class="btn go" value="ok" id="invOk">➕ Pune-o în cutie</button>
+      </div>
+    </form>
+  </dialog>
+
+  <canvas id="confetti"></canvas>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
